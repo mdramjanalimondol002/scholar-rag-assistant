@@ -1,10 +1,11 @@
 import streamlit as st
 from app.rag_engine import ScholarRAGEngine
+from app.sample import SAMPLE_PAPER
 
 st.set_page_config(page_title="ScholarRAG - Academic Assistant", page_icon="📚", layout="wide")
 
 st.title("📚 ScholarRAG: AI Research Paper & Academic Assistant")
-st.markdown("Upload any academic PDF or load the built-in sample paper to retrieve relevant passages via vector search and generate cited answers using **Gemini LLM**.")
+st.markdown("Upload any academic PDF or load the built-in sample paper to retrieve relevant passages (dense embeddings + FAISS, or a TF-IDF keyword baseline) and generate cited answers using **Gemini LLM**.")
 
 if "rag" not in st.session_state:
     st.session_state.rag = ScholarRAGEngine()
@@ -13,20 +14,23 @@ if "doc_loaded" not in st.session_state:
 if "chunk_count" not in st.session_state:
     st.session_state.chunk_count = 0
 
-SAMPLE_PAPER = """
-[Page 1] Title: Deep Learning and Explainable AI in Agricultural Leaf Disease Diagnosis.
-Abstract: Plant diseases significantly reduce global crop yield and quality. Recent advances in Convolutional Neural Networks (CNNs) such as ResNet-50, MobileNetV2, and EfficientNetV2 have enabled automated disease classification from RGB leaf images captured in field conditions.
-[Page 2] Methodology: A dataset of 4,267 original RGB images across six distinct crop disease categories was curated under natural lighting conditions and standardized to 300x300 pixels. Data augmentation expanded the corpus to 21,335 images to prevent overfitting.
-[Page 3] Explainability & Results: To ensure clinical and agricultural trust, Grad-CAM and LIME visual explanation techniques were integrated. These methods generate heatmaps highlighting the exact necrotic lesions and chlorotic spots driving each model's prediction, achieving 96.4% classification accuracy across validation folds.
-"""
+RETRIEVERS = {
+    "Dense embeddings (MiniLM + FAISS)": "dense",
+    "TF-IDF keyword baseline": "tfidf",
+}
 
 with st.sidebar:
+    st.header("🔎 Retrieval Method")
+    method_label = st.radio("Retrieve passages with:", list(RETRIEVERS.keys()))
+    method = RETRIEVERS[method_label]
+    st.markdown("---")
+
     st.header("📄 Document Ingestion")
     uploaded_file = st.file_uploader("Upload Research Paper (PDF)", type=["pdf"])
     
     if uploaded_file is not None:
         if st.button("Index Uploaded PDF", type="primary"):
-            with st.spinner("Extracting text & building vector index..."):
+            with st.spinner("Extracting text & building indexes (first run downloads the embedding model)..."):
                 count = st.session_state.rag.load_pdf(uploaded_file)
                 st.session_state.doc_loaded = True
                 st.session_state.chunk_count = count
@@ -35,13 +39,14 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("⚡ Instant Demo")
     if st.button("Load Sample Research Paper"):
-        count = st.session_state.rag.process_text(SAMPLE_PAPER, chunk_size=45)
+        with st.spinner("Building indexes (first run downloads the embedding model)..."):
+            count = st.session_state.rag.process_text(SAMPLE_PAPER, chunk_size=45)
         st.session_state.doc_loaded = True
         st.session_state.chunk_count = count
-        st.success(f"Sample paper loaded ({count} vector chunks indexed)!")
+        st.success(f"Sample paper loaded ({count} chunks indexed)!")
 
 if st.session_state.doc_loaded:
-    st.info(f"✅ Active Vector Index: **{st.session_state.chunk_count}** searchable text chunks ready.")
+    st.info(f"✅ Active index: **{st.session_state.chunk_count}** searchable text chunks ready.")
     
     query = st.text_input(
         "🔍 Ask a question about the research paper:",
@@ -49,8 +54,8 @@ if st.session_state.doc_loaded:
     )
     
     if st.button("Search & Generate Answer", type="primary") and query:
-        with st.spinner("Searching vector space & generating cited answer..."):
-            retrieved = st.session_state.rag.retrieve(query, top_k=3)
+        with st.spinner("Retrieving passages & generating cited answer..."):
+            retrieved = st.session_state.rag.retrieve(query, top_k=3, method=method)
             answer = st.session_state.rag.generate_answer(query, retrieved)
             
             col1, col2 = st.columns([3, 2])
@@ -58,7 +63,7 @@ if st.session_state.doc_loaded:
                 st.subheader("🤖 AI Synthesized Answer")
                 st.write(answer)
             with col2:
-                st.subheader("📌 Retrieved Vector Passages")
+                st.subheader(f"📌 Retrieved Passages ({method_label})")
                 for item in retrieved:
                     with st.expander(f"Passage {item['chunk_id']} (Similarity Score: {item['score']})"):
                         st.write(item['content'])

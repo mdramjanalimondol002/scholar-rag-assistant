@@ -1,0 +1,8 @@
+[
+  {"question": "How many original images were in the dataset?", "answer": "4,267"},
+  {"question": "What size were the pictures resized to?", "answer": "300x300"},
+  {"question": "How large did the corpus become after augmentation?", "answer": "21,335"},
+  {"question": "Which techniques were used to make the model's decisions interpretable?", "answer": "Grad-CAM and LIME"},
+  {"question": "How well did the classifier perform?", "answer": "96.4%"},
+  {"question": "Which neural network architectures are mentioned?", "answer": "ResNet-50"}
+]

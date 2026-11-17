@@ -1,50 +1,30 @@
 # ScholarRAG: AI Research Paper & Academic Assistant
 
-A Retrieval-Augmented Generation (RAG) document intelligence system built with **Python**, **Scikit-learn Vector Search**, **Google Gemini LLM**, and **Streamlit**. ScholarRAG ingests academic PDFs, splits text into overlapping semantic chunks, retrieves top-k relevant passages using TF-IDF cosine similarity, and generates source-cited answers.
+A Retrieval-Augmented Generation (RAG) document assistant built with **Python**, **Sentence-Transformers (`all-MiniLM-L6-v2`)**, **FAISS**, **Scikit-learn**, **Google Gemini**, and **Streamlit**. ScholarRAG ingests academic PDFs, splits text into overlapping word windows, retrieves top-k passages using either dense vector embeddings or a lexical TF-IDF baseline, and generates source-cited answers.
 
 ![ScholarRAG Application Preview](demo.png)
 
 ## Key Features
-* **Automated PDF Ingestion & Chunking:** Extracts text from multi-page academic PDFs with page tracking and sliding-window chunking.
-* **Vector Similarity Search:** Computes TF-IDF vector embeddings and ranks passages via Cosine Similarity scores.
-* **Source-Cited LLM Generation:** Integrates Google Gemini (`google-genai`) to synthesize accurate answers strictly grounded in retrieved passages with inline citations (`[Passage 1]`, `[Passage 2]`).
-* **Resilient Extractive Fallback:** Works seamlessly offline by returning the highest-scoring vector passages with similarity scores if no API key is configured.
+* **PDF Ingestion & Windowed Chunking:** Extracts text from multi-page academic PDFs with page tracking and splits it into overlapping word windows (120 words, 25-word overlap).
+* **Dual Retrieval Engine (Dense vs. Lexical):**
+  * **Dense Semantic Search:** Encodes chunks with `sentence-transformers/all-MiniLM-L6-v2` (384-dim L2-normalized vectors) and searches via **FAISS** inner-product index (`IndexFlatIP`).
+  * **Lexical Baseline:** Computes **TF-IDF** vectors and ranks chunks by cosine similarity for direct keyword comparison.
+* **Source-Cited LLM Synthesis:** Uses Google Gemini (`gemini-2.0-flash` via `google-genai`) to synthesize answers strictly grounded in retrieved passages with inline citations (`[Passage 1]`, `[Passage 2]`).
+* **Extractive Offline Fallback:** Automatically returns the highest-scoring retrieved passages with similarity scores when run without an API key.
 
-## Tech Stack
-* **LLM & GenAI:** Google Gemini API (`google-genai`), Prompt Engineering, RAG
-* **Vector Search & NLP:** Scikit-learn (`TfidfVectorizer`, `cosine_similarity`), PyPDF
-* **Frontend UI:** Streamlit
+## Retrieval Benchmark (Dense FAISS vs. TF-IDF Baseline)
 
----
+Evaluated on the built-in agricultural computer vision sample paper (9 chunks) across 16 factual and paraphrased questions using `evaluate.py`:
 
-## Quick Start (Installation & Setup)
+| Retrieval method | Hit@1 | Hit@3 | MRR |
+| :--- | :---: | :---: | :---: |
+| TF-IDF (keyword baseline) | 75% | 88% | 0.82 |
+| Dense embeddings (MiniLM + FAISS) | **75%** | **100%** | **0.86** |
 
-1. **Clone the repository & navigate to the project folder:**
-   `git clone https://github.com/mdramjanalimondol002/scholar-rag-assistant.git`
-   `cd scholar-rag-assistant`
+* **Observation:** While TF-IDF performs well when query terms match the exact wording in the paper, dense embeddings (`all-MiniLM-L6-v2` + FAISS) consistently rank paraphrased queries higher (e.g., matching *"input photos resized to"* against *"standardized to 300x300 pixels"* at Rank 1 vs. Rank 6 for TF-IDF), achieving **100% Hit@3**.
 
-2. **Install required dependencies:**
-   `pip install -r requirements.txt`
-
-3. **Configure Gemini API Key (Optional):**
-   Create a `.env` file in the root directory and add your key:
-   `GEMINI_API_KEY=your_api_key_here`
-
-4. **Run the Streamlit Web Application:**
-   `python -m streamlit run main.py`
-
----
-
-## How to Use the Application (Step-by-Step Guide)
-
-1. **Ingest a Research Paper:**
-   * Open `http://localhost:8501` in your browser.
-   * Upload any academic research paper (`.pdf`) from the left sidebar and click **"Index Uploaded PDF"**, OR click **"Load Sample Research Paper"** under Instant Demo for immediate testing.
-
-2. **Query the Vector Index:**
-   * Type your research question in the search box (e.g., *"How many images were used in the dataset and which explainable AI methods were applied?"*).
-   * Click **"Search & Generate Answer"**.
-
-3. **Verify Citations & Similarity Scores:**
-   * Read the synthesized answer with passage citations on the left panel.
-   * Expand the **Retrieved Vector Passages** on the right panel to inspect the exact source chunks and their cosine similarity scores.
+Reproduce the benchmark locally:
+```bash
+python evaluate.py --sample
+# Or evaluate on your own PDF and custom question set:
+python evaluate.py --pdf paper.pdf --questions eval/questions.json

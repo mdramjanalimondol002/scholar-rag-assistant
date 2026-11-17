@@ -1,8 +1,18 @@
 [
   {"question": "How many original images were in the dataset?", "answer": "4,267"},
-  {"question": "What size were the pictures resized to?", "answer": "300x300"},
-  {"question": "How large did the corpus become after augmentation?", "answer": "21,335"},
-  {"question": "Which techniques were used to make the model's decisions interpretable?", "answer": "Grad-CAM and LIME"},
-  {"question": "How well did the classifier perform?", "answer": "96.4%"},
-  {"question": "Which neural network architectures are mentioned?", "answer": "ResNet-50"}
+  {"question": "What pixel dimensions were the input photos resized to?", "answer": "300x300"},
+  {"question": "How large did the image collection become after data expansion?", "answer": "21,335"},
+  {"question": "Which visual interpretability methods were used to explain model predictions?", "answer": "Grad-CAM and LIME"},
+  {"question": "What overall classification accuracy did the model achieve?", "answer": "96.4%"},
+  {"question": "Which neural network architectures are mentioned in the abstract?", "answer": "ResNet-50"},
+  {"question": "How many disease classes were included in the curated dataset?", "answer": "six distinct crop disease categories"},
+  {"question": "Which validation strategy was used to split the dataset?", "answer": "Stratified 5-fold cross-validation"},
+  {"question": "What optimizer and step size were used during training?", "answer": "AdamW"},
+  {"question": "What was the mini-batch size configured for model training?", "answer": "batch size of 32"},
+  {"question": "What F1 metric score was obtained across the validation folds?", "answer": "95.8%"},
+  {"question": "What visual symptoms on the leaves do the heatmaps highlight?", "answer": "necrotic lesions and chlorotic spots"},
+  {"question": "Which additional architectures showed strong generalization on field samples?", "answer": "DenseNet-121 and ConvNeXt-Tiny"},
+  {"question": "How fast is a single prediction on edge processors?", "answer": "14 milliseconds"},
+  {"question": "Which lightweight model was benchmarked for edge CPU inference speed?", "answer": "MobileNetV3"},
+  {"question": "Why was synthetic image augmentation applied to the training set?", "answer": "prevent overfitting"}
 ]

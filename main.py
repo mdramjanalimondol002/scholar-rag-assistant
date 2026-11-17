@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+ROOT = str(Path(__file__).resolve().parent)
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
 import streamlit as st
 from app.rag_engine import ScholarRAGEngine
 from app.sample import SAMPLE_PAPER

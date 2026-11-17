@@ -1,0 +1,6 @@
+﻿SAMPLE_PAPER = '''
+[Page 1] Title: Deep Learning and Explainable AI in Agricultural Leaf Disease Diagnosis.
+Abstract: Plant diseases significantly reduce global crop yield and quality. Recent advances in Convolutional Neural Networks (CNNs) such as ResNet-50, MobileNetV2, and EfficientNetV2 have enabled automated disease classification from RGB leaf images captured in field conditions.
+[Page 2] Methodology: A dataset of 4,267 original RGB images across six distinct crop disease categories was curated under natural lighting conditions and standardized to 300x300 pixels. Data augmentation expanded the corpus to 21,335 images to prevent overfitting. Stratified 5-fold cross-validation was employed alongside AdamW optimization with a learning rate of 0.0001 and batch size of 32.
+[Page 3] Explainability & Results: To ensure clinical and agricultural trust, Grad-CAM and LIME visual explanation techniques were integrated. These methods generate heatmaps highlighting the exact necrotic lesions and chlorotic spots driving each model's prediction, achieving 96.4% classification accuracy and an F1-score of 95.8% across validation folds. DenseNet-121 and ConvNeXt-Tiny also demonstrated strong generalization on unseen field samples, while MobileNetV3 achieved an inference latency of 14 milliseconds per image on edge CPU hardware.
+'''
